@@ -6,7 +6,7 @@ const NewsScrapper = ($: CheerioAPI) => {
     
     $("div > a.story-link").each((i: number, e) => {
     
-        const link = $(e).attr("href")
+        const link = encodeURIComponent($(e).attr("href") || "")
         const tags = $(e).find("div > div > span.h-tags").text()
         const title = $(e).find("div > div > h2.home-title").text()
         const img = $(e).find("div > div > div > img.home-img-src").attr("data-src")

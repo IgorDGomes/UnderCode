@@ -15,9 +15,8 @@ const NewsRoute = async (app: Application) => {
         }
 
         try {
-            const $ = await Scrapper(url);
-
-            const news: any[] = NewsScrapper($);
+            const scrapper = await Scrapper(url);
+            const news = scrapper.GetNews();
 
             if(news.length == 0)
             {
@@ -25,12 +24,32 @@ const NewsRoute = async (app: Application) => {
                 return res.status(404).json({ error: "Not found news" })
             }
 
-            const { lastPage, nextPage } = PagesScrapper($)
+            const { lastPage, nextPage } = scrapper.GetPages();
 
             return res.json({ lastPage, nextPage, news });
         } catch (error) {
             console.error("Error receiving news");
             return res.status(500).json({ error: "Error receiving news" });
+        }
+    });
+
+    // GET /news/:url  ENDPOINT
+    app.get("/news/:url", async (req: Request, res: Response) => {
+        let url = decodeURIComponent(req.params.url);
+
+        if(!url.includes("thehackernews.com"))
+        {
+            console.log(`Invalid ID: ${url}`)
+            return res.status(500).json({ error: `Invalid ID: ${url}` });
+        }
+
+        try {
+            const scrapper = await Scrapper(url);
+            const article = scrapper.GetArticle();
+            return res.json(article);
+        } catch(error) {
+            console.error("Error receiving article");
+            return res.status(500).json({ error: "Error receiving article" });
         }
     });
 }

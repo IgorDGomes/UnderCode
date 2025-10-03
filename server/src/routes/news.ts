@@ -1,31 +1,55 @@
-import axios from "axios";
-import * as cheerio from "cheerio";
-import { Application } from "express";
+import { Application, Request, Response } from "express";
+import PagesScrapper from "../scrapper/pagesScrapper";
+import NewsScrapper from "../scrapper/newsScrapper";
+import Scrapper from "../scrapper/scrapper";   
 
-const NewsRoute = (app: Application) => {
-    app.get("/news", async (req: any, res: any) => {
+const NewsRoute = async (app: Application) => {
+    app.get("/news", async (req: Request, res: Response) => {
+
+        const url = req.query.page ? decodeURI(String(req.query.page)) : "https://thehackernews.com"
+
+        if(!url.includes("thehackernews.com"))
+        {
+            console.log(`Invalid link: ${url}`)
+            return res.status(500).json({ error: `Invalid link: ${url}` });
+        }
+
         try {
-            const response = await axios.get("https://thehackernews.com/");
-            const html = response.data;
-            const $ = cheerio.load(html);
+            const scrapper = await Scrapper(url);
+            const news = scrapper.GetNews();
 
-            const news: any[] = [];
+            if(news.length == 0)
+            {
+                console.log("Not found news:\n - link -> ", url)
+                return res.status(404).json({ error: "Not found news" })
+            }
 
-            $(".story-link").each((i: number, el: any) => {
-                const tags = $(".h-tags").eq(i).text();
-                const title = $(".home-title").eq(i).text();
-                const img = $(".home-img-src").eq(i).attr("data-src");
-                const desc = $(".home-desc").eq(i).text();
-                const date = $(".h-datetime").eq(i).text();
-                const link = el.attribs.href;
+            const { lastPage, nextPage } = scrapper.GetPages();
 
-                news.push({title, tags, link, img, desc, date});            
-            });
-
-            res.json({ news });
+            return res.json({ lastPage, nextPage, news });
         } catch (error) {
-            console.error("Error receiving news:", error);
-            res.status(500).json({ error: "Error receiving news" });
+            console.error("Error receiving news");
+            return res.status(500).json({ error: "Error receiving news" });
+        }
+    });
+
+    // GET /news/:url  ENDPOINT
+    app.get("/news/:url", async (req: Request, res: Response) => {
+        let url = decodeURIComponent(req.params.url);
+
+        if(!url.includes("thehackernews.com"))
+        {
+            console.log(`Invalid ID: ${url}`)
+            return res.status(500).json({ error: `Invalid ID: ${url}` });
+        }
+
+        try {
+            const scrapper = await Scrapper(url);
+            const article = scrapper.GetArticle();
+            return res.json(article);
+        } catch(error) {
+            console.error("Error receiving article");
+            return res.status(500).json({ error: "Error receiving article" });
         }
     });
 }

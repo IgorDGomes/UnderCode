@@ -1,13 +1,11 @@
 import { Application, Request, Response } from "express";
-import PagesScrapper from "../scrapper/pagesScrapper";
-import NewsScrapper from "../scrapper/newsScrapper";
 import Scrapper from "../scrapper/scrapper";   
 
 const NewsRoute = async (app: Application) => {
     app.get("/news", async (req: Request, res: Response) => {
 
         const url = req.query.page ? decodeURI(String(req.query.page)) : "https://thehackernews.com"
-
+        console.log("Fetching news from:", url);
         if(!url.includes("thehackernews.com"))
         {
             console.log(`Invalid link: ${url}`)
@@ -26,7 +24,9 @@ const NewsRoute = async (app: Application) => {
 
             const { lastPage, nextPage } = scrapper.GetPages();
 
-            return res.json({ lastPage, nextPage, news });
+            const isFirst = lastPage == null, isLast = nextPage == null;
+
+            return res.json({ length: news.length, isFirst, isLast, lastPage, nextPage, news });
         } catch (error) {
             console.error("Error receiving news");
             return res.status(500).json({ error: "Error receiving news" });

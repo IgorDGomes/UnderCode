@@ -1,13 +1,13 @@
 import { CheerioAPI } from "cheerio";
 
-const NewsScrapper = ($: CheerioAPI) => {
+const PagesScrapper = ($: CheerioAPI) => {
     const nextPageLink = $('a[title="Older Posts"]').attr("href");
     const lastPageLink = $('a[title="Newer Posts"]').attr("href");
 
-    const nextPage = nextPageLink && encodeURI(nextPageLink)
-    const lastPage = lastPageLink && encodeURI(lastPageLink)
+    const nextPage = nextPageLink && encodeURIComponent(nextPageLink)
+    const lastPage = lastPageLink && encodeURIComponent(lastPageLink)
 
     return { nextPage, lastPage };
 }
 
-export default NewsScrapper;
+export default PagesScrapper;

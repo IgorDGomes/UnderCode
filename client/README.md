@@ -71,3 +71,13 @@ export default defineConfig([
   },
 ])
 ```
+
+<!--
+  TODO
+  
+  - Change favicon
+  - Add main page
+  - Add animations
+  - Add theme toggle
+  
+-->
